@@ -1,0 +1,6 @@
+{
+  "name": "Algorithm Mobile Comparison",
+  "description": "Niyo Kart smartphone store and algorithm comparison platform with Admin AI phone ingestion (Gemini vision spec extraction), PostgreSQL backend, and side-by-side spec evaluations.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
