@@ -55,6 +55,9 @@ export interface PhoneSpecs {
   highlights: string[];
   isPublished?: boolean;
   publishedAt?: string;
+  realTimePriceVerified?: boolean;
+  realTimePriceUpdated?: string;
+  ramVariants?: string[];
 }
 
 export function formatINR(val: number): string {

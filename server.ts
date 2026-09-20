@@ -16,7 +16,11 @@ import {
 } from './src/db/queries.ts';
 import { PHONES_DATA } from './src/data/phones.ts';
 import { loadAdminPhones, saveAdminPhones } from './server/adminPhonesManager.ts';
-import { extractPhoneFromImage } from './server/geminiService.ts';
+import {
+  extractPhoneFromImage,
+  lookupRealTimePhoneSpecs,
+  fetchRealTimePriceAndSpecs,
+} from './server/geminiService.ts';
 
 async function startServer() {
   const app = express();
@@ -80,6 +84,47 @@ async function startServer() {
       console.error('AI Extraction Error:', error);
       res.status(500).json({
         error: error.message || 'Failed to extract phone specifications with AI.',
+      });
+    }
+  });
+
+  // Admin AI Real-Time Lookup Endpoint: grounds real-time price, RAM & processor via web search
+  app.post('/api/admin/ai-lookup-realtime', async (req, res) => {
+    try {
+      const { query } = req.body;
+      if (!query || typeof query !== 'string' || !query.trim()) {
+        return res.status(400).json({ error: 'Search query or phone name is required.' });
+      }
+
+      console.log(`[Admin Real-Time Agent] Looking up live environment specs for: "${query}"`);
+      const result = await lookupRealTimePhoneSpecs(query.trim());
+      res.json({ success: true, ...result });
+    } catch (error: any) {
+      console.error('AI Real-Time Lookup Error:', error);
+      res.status(500).json({
+        error: error.message || 'Failed to retrieve real-time phone specifications.',
+      });
+    }
+  });
+
+  // Admin AI Refresh Price & Processor Endpoint: re-queries live market for current pricing & silicon specs
+  app.post('/api/admin/ai-refresh-price-processor', async (req, res) => {
+    try {
+      const { phoneName, brand } = req.body;
+      if (!phoneName) {
+        return res.status(400).json({ error: 'phoneName is required.' });
+      }
+
+      const liveSpecs = await fetchRealTimePriceAndSpecs(phoneName, brand);
+      if (!liveSpecs.verified) {
+        return res.status(404).json({ error: 'Could not ground live market specs for this phone.' });
+      }
+
+      res.json({ success: true, liveSpecs });
+    } catch (error: any) {
+      console.error('AI Refresh Price Error:', error);
+      res.status(500).json({
+        error: error.message || 'Failed to refresh real-time market specs.',
       });
     }
   });
